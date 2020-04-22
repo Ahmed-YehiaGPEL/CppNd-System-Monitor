@@ -68,7 +68,37 @@ vector<int> LinuxParser::Pids() {
 }
 
 // TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
+float LinuxParser::MemoryUtilization() {
+  float memUtil;
+  std::ifstream memFile(kProcDirectory + kMeminfoFilename);
+  std::string k, v, line;
+  float totalMemory = -1, freeMemory = -1, bufferMemory = -1;
+  if (memFile.is_open()) {
+    while (getline(memFile, line)) {
+      std::stringstream stream(line);
+      stream >> k >> v;
+      if (k == "MemTotal:") {
+        totalMemory = std::stof(v);
+      } else if (k == "MemFree:") {
+        freeMemory = std::stof(v);
+      } else if (k == "Buffers:") {
+        bufferMemory = std::stof(v);
+      }
+      if (totalMemory != -1 && freeMemory != -1 && bufferMemory != -1) break;
+    }
+    // Two Ways of implementing:
+    // 1- Get free memory and subtract the final percentile value from 1, since
+    // we need to calculate used 
+    //2- Calculate Used Memory (we need total mem,
+    // free mem, buffer, cached, SReclaimable, Shmem) We apply 1 for being
+    // easier, since we don't need more info.
+    auto usableMemory = (totalMemory - bufferMemory);
+    memUtil = freeMemory / usableMemory;
+    memUtil = 1 - memUtil;
+  }
+
+  return memUtil;
+}
 
 // DONE: Read and return the system uptime
 long LinuxParser::UpTime() {
