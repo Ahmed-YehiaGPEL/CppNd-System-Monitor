@@ -88,10 +88,10 @@ float LinuxParser::MemoryUtilization() {
     }
     // Two Ways of implementing:
     // 1- Get free memory and subtract the final percentile value from 1, since
-    // we need to calculate used 
-    //2- Calculate Used Memory (we need total mem,
-    // free mem, buffer, cached, SReclaimable, Shmem) We apply 1 for being
-    // easier, since we don't need more info.
+    // we need to calculate used
+    // 2- Calculate Used Memory (we need total mem,
+    // free mem, buffer, cached, SReclaimable, Shmem)
+    // We apply 1 for being easier, since we don't need more info.
     auto usableMemory = (totalMemory - bufferMemory);
     memUtil = freeMemory / usableMemory;
     memUtil = 1 - memUtil;
@@ -113,9 +113,6 @@ long LinuxParser::UpTime() {
     stream >> systemUpTimeString;
   }
   systemUpTime = std::stold(systemUpTimeString);
-
-  std::cout << "HELLO " << systemUpTimeString << " XX " << systemUpTime
-            << std::endl;
   return systemUpTime;
 }
 
@@ -135,11 +132,39 @@ long LinuxParser::IdleJiffies() { return 0; }
 // TODO: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { return {}; }
 
-// TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+// DONE: Read and return the total number of processes
+int LinuxParser::TotalProcesses() {
+  std::ifstream memInfoFile(kProcDirectory + kStatFilename);
+  if (memInfoFile.is_open()) {
+    std::string line, k, v;
+    while (getline(memInfoFile, line)) {
+      std::stringstream stream(line);
+      stream >> k >> v;
+      if (k == "processes") {
+        return std::stoi(v);
+      }
+    }
+  }
 
-// TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { return 0; }
+  return 0;
+}
+
+// DONE: Read and return the number of running processes
+int LinuxParser::RunningProcesses() {
+  std::ifstream memInfoFile(kProcDirectory + kStatFilename);
+  if (memInfoFile.is_open()) {
+    std::string line, k, v;
+    while (getline(memInfoFile, line)) {
+      std::stringstream stream(line);
+      stream >> k >> v;
+      if (k == "procs_running") {
+        return std::stoi(v);
+      }
+    }
+  }
+
+  return 0;
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
