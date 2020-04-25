@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "linux_parser.h"
+#define TICKS_PER_SEC sysconf(_SC_CLK_TCK)
 
 using std::stof;
 using std::string;
@@ -116,22 +117,60 @@ long LinuxParser::UpTime() {
   return systemUpTime;
 }
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
+// DONE: Read and return the number of jiffies for the system
+long LinuxParser::Jiffies() { return UpTime() * TICKS_PER_SEC; }
 
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
 
 // TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+long LinuxParser::ActiveJiffies() { 
+  auto cpuUtil = CpuUtilization();
+  long activeTime =   cpuUtil[LinuxParser::kUser_] +
+                      cpuUtil[LinuxParser::kNice_] +
+                      cpuUtil[LinuxParser::kSystem_] +
+                      cpuUtil[LinuxParser::kIRQ_] +
+                      cpuUtil[LinuxParser::kSoftIRQ_] +
+                      cpuUtil[LinuxParser::kSteal_];
+
+  return activeTime; 
+  }
 
 // TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
+long LinuxParser::IdleJiffies() {
+  auto cpuUtilization = CpuUtilization();
+  return cpuUtilization[CPUStates::kIdle_] +
+         cpuUtilization[CPUStates::kIOwait_];
+}
 
 // TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
-
+vector<float> LinuxParser::CpuUtilization() {
+  std::vector<float> currentProcessorState(10);
+  std::ifstream procFile(LinuxParser::kProcDirectory +
+                         LinuxParser::kStatFilename);
+  if (procFile.is_open()) {
+    std::string line, k, v;
+    while (getline(procFile, line)) {
+      std::stringstream cpuValues(line);
+      cpuValues >> k;
+      if (k == "cpu") {
+        cpuValues >> currentProcessorState[LinuxParser::CPUStates::kUser_] >>
+            currentProcessorState[LinuxParser::CPUStates::kNice_] >>
+            currentProcessorState[LinuxParser::CPUStates::kSystem_] >>
+            currentProcessorState[LinuxParser::CPUStates::kIdle_] >>
+            currentProcessorState[LinuxParser::CPUStates::kIOwait_] >>
+            currentProcessorState[LinuxParser::CPUStates::kIRQ_] >>
+            currentProcessorState[LinuxParser::CPUStates::kSoftIRQ_] >>
+            currentProcessorState[LinuxParser::CPUStates::kSteal_] >>
+            currentProcessorState[LinuxParser::CPUStates::kGuest_] >>
+            currentProcessorState[LinuxParser::CPUStates::kGuestNice_];
+        break;
+      }
+    }
+  }
+  return currentProcessorState;
+}
 // DONE: Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   std::ifstream memInfoFile(kProcDirectory + kStatFilename);

@@ -10,20 +10,21 @@ class Process {
  public:
   Process();
   Process(int pid);
-  int Pid();                               // TODO: See src/process.cpp
-  std::string User();                      // TODO: See src/process.cpp
-  std::string Command();                   // TODO: See src/process.cpp
-  float CpuUtilization() const;                  // TODO: See src/process.cpp
-  std::string Ram();                       // TODO: See src/process.cpp
-  long int UpTime();                       // TODO: See src/process.cpp
-  bool operator<(const Process & a) const;  // TODO: See src/process.cpp
-  bool operator>(const Process & a) const;  // TODO: See src/process.cpp
-  // TODO: Declare any necessary private members
+  int Pid();
+  std::string User();
+  std::string Command();
+  float CpuUtilization() const;
+  std::string Ram();
+  long int UpTime();
+
+  bool operator<(const Process& a) const;
+  bool operator>(const Process& a) const;
+
  private:
   int mPid;
   float mUtilization;
 
-    void CalculateUtlization();
+  void CalculateUtlization();
 };
 
 #endif
