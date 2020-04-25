@@ -6,7 +6,7 @@ class Processor {
   Processor();
   float Utilization();  
  private:
-  std::vector<float> previousProcessorState;
+  std::vector<long> previousProcessorState;
 };
 
 #endif

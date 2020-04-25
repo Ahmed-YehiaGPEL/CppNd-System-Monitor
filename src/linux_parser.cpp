@@ -118,13 +118,27 @@ long LinuxParser::UpTime() {
 }
 
 // DONE: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return UpTime() * TICKS_PER_SEC; }
+long LinuxParser::Jiffies() { 
+  auto cpuUtil = CpuUtilization();
+  long systemJiffies =   cpuUtil[LinuxParser::kUser_] +
+                      cpuUtil[LinuxParser::kNice_] +
+                      cpuUtil[LinuxParser::kSystem_] +
+                      cpuUtil[LinuxParser::kIRQ_] +
+                      cpuUtil[LinuxParser::kSoftIRQ_] +
+                      cpuUtil[LinuxParser::kSteal_] +
+                      
+                      cpuUtil[LinuxParser::kIdle_] + 
+                      cpuUtil[LinuxParser::kIOwait_];
+
+  return systemJiffies; 
+    //return UpTime() * TICKS_PER_SEC; 
+  }
 
 // TODO: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
 long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
 
-// TODO: Read and return the number of active jiffies for the system
+// Done: Read and return the number of active jiffies for the system
 long LinuxParser::ActiveJiffies() { 
   auto cpuUtil = CpuUtilization();
   long activeTime =   cpuUtil[LinuxParser::kUser_] +
@@ -137,16 +151,16 @@ long LinuxParser::ActiveJiffies() {
   return activeTime; 
   }
 
-// TODO: Read and return the number of idle jiffies for the system
+// Done: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() {
   auto cpuUtilization = CpuUtilization();
   return cpuUtilization[CPUStates::kIdle_] +
          cpuUtilization[CPUStates::kIOwait_];
 }
 
-// TODO: Read and return CPU utilization
-vector<float> LinuxParser::CpuUtilization() {
-  std::vector<float> currentProcessorState(10);
+// Done: Read and return CPU utilization
+vector<long> LinuxParser::CpuUtilization() {
+  std::vector<long> currentProcessorState(10);
   std::ifstream procFile(LinuxParser::kProcDirectory +
                          LinuxParser::kStatFilename);
   if (procFile.is_open()) {

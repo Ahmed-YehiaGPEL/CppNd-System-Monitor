@@ -15,9 +15,9 @@ using std::string;
 using std::vector;
 
 System::System()
-    : mKernel(LinuxParser::Kernel()),
-      mOperatingSystem(LinuxParser::OperatingSystem()),
-      processes_(10) {}
+    : processes_(10),
+      mKernel(LinuxParser::Kernel()),
+      mOperatingSystem(LinuxParser::OperatingSystem()) {}
 // DONE: Return the system's CPU
 Processor& System::Cpu() { return cpu_; }
 
