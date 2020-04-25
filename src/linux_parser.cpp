@@ -6,7 +6,8 @@
 
 #include "linux_parser.h"
 #define TICKS_PER_SEC sysconf(_SC_CLK_TCK)
-
+#define PROC_FILE(proc_id, file_name) \
+  kProcDirectory + to_string(proc_id) + file_name
 using std::stof;
 using std::string;
 using std::to_string;
@@ -118,38 +119,45 @@ long LinuxParser::UpTime() {
 }
 
 // DONE: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { 
+long LinuxParser::Jiffies() {
   auto cpuUtil = CpuUtilization();
-  long systemJiffies =   cpuUtil[LinuxParser::kUser_] +
-                      cpuUtil[LinuxParser::kNice_] +
-                      cpuUtil[LinuxParser::kSystem_] +
-                      cpuUtil[LinuxParser::kIRQ_] +
-                      cpuUtil[LinuxParser::kSoftIRQ_] +
-                      cpuUtil[LinuxParser::kSteal_] +
-                      
-                      cpuUtil[LinuxParser::kIdle_] + 
-                      cpuUtil[LinuxParser::kIOwait_];
+  long systemJiffies =
+      cpuUtil[LinuxParser::kUser_] + cpuUtil[LinuxParser::kNice_] +
+      cpuUtil[LinuxParser::kSystem_] + cpuUtil[LinuxParser::kIRQ_] +
+      cpuUtil[LinuxParser::kSoftIRQ_] + cpuUtil[LinuxParser::kSteal_] +
 
-  return systemJiffies; 
-    //return UpTime() * TICKS_PER_SEC; 
-  }
+      cpuUtil[LinuxParser::kIdle_] + cpuUtil[LinuxParser::kIOwait_];
 
-// TODO: Read and return the number of active jiffies for a PID
+  return systemJiffies;
+}
+
+// DONE: Read and return the number of active jiffies for a PID
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
+long LinuxParser::ActiveJiffies(int pid) {
+  std::ifstream statFile(PROC_FILE(pid, kStatFilename));
+  if (statFile.is_open()) {
+    std::string token, line;
+    getline(statFile, line);
+    std::vector<string> data;
+    std::stringstream stream(line);
+    while (stream >> token) {
+      data.push_back(token);
+    }
+    return stol(data[13]) + stol(data[14]) + stol(data[15]) + stol(data[16]);
+  }
+  return 0;
+}
 
 // Done: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { 
+long LinuxParser::ActiveJiffies() {
   auto cpuUtil = CpuUtilization();
-  long activeTime =   cpuUtil[LinuxParser::kUser_] +
-                      cpuUtil[LinuxParser::kNice_] +
-                      cpuUtil[LinuxParser::kSystem_] +
-                      cpuUtil[LinuxParser::kIRQ_] +
-                      cpuUtil[LinuxParser::kSoftIRQ_] +
-                      cpuUtil[LinuxParser::kSteal_];
+  long activeTime =
+      cpuUtil[LinuxParser::kUser_] + cpuUtil[LinuxParser::kNice_] +
+      cpuUtil[LinuxParser::kSystem_] + cpuUtil[LinuxParser::kIRQ_] +
+      cpuUtil[LinuxParser::kSoftIRQ_] + cpuUtil[LinuxParser::kSteal_];
 
-  return activeTime; 
-  }
+  return activeTime;
+}
 
 // Done: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() {
@@ -219,22 +227,88 @@ int LinuxParser::RunningProcesses() {
   return 0;
 }
 
-// TODO: Read and return the command associated with a process
+// DONE: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Command(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::Command(int pid) {
+  auto procFileName = PROC_FILE(pid, kCmdlineFilename);
+  std::ifstream cmdFile(procFileName);
+  std::string commandLine;
+  if (cmdFile.is_open()) {
+    getline(cmdFile, commandLine);
+  }
 
-// TODO: Read and return the memory used by a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Ram(int pid[[maybe_unused]]) { return string(); }
+  return commandLine;
+}
 
-// TODO: Read and return the user ID associated with a process
+// DONE: Read and return the memory used by a process
 // REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::Uid(int pid[[maybe_unused]]) { return string(); }
+string LinuxParser::Ram(int pid) {
+  auto procFileName = PROC_FILE(pid, kStatusFilename);
+  std::ifstream statFileStream(procFileName);
+  std::string line, k;
+  if (statFileStream.is_open()) {
+    while (getline(statFileStream, line)) {
+      std::stringstream stream(line);
+      stream >> k;
+      if (k == "VmSize:") {
+        stream >> k;
+        return (to_string(stol(k) / 1024));
+      }
+    }
+  }
 
-// TODO: Read and return the user associated with a process
-// REMOVE: [[maybe_unused]] once you define the function
-string LinuxParser::User(int pid[[maybe_unused]]) { return string(); }
+  return "-1";
+}
 
-// TODO: Read and return the uptime of a process
+// DONE: Read and return the user ID associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid[[maybe_unused]]) { return 0; }
+string LinuxParser::Uid(int pid) {
+  auto procFileName = PROC_FILE(pid, kStatusFilename);
+  std::ifstream statFileStream(procFileName);
+  std::string line, k;
+  if (statFileStream.is_open()) {
+    while (getline(statFileStream, line)) {
+      std::stringstream stream(line);
+      stream >> k;
+      if (k == "Uid:") {
+        stream >> k;
+        return k;
+      }
+    }
+  }
+
+  return " ";
+}
+
+// DONE: Read and return the user associated with a process
+// REMOVE: [[maybe_unused]] once you define the function
+string LinuxParser::User(int pid) {
+  std::ifstream passwdFile(kPasswordPath);
+  if (passwdFile.is_open()) {
+    std::string line, userId = "x:" + Uid(pid);
+    while (getline(passwdFile, line)) {
+      auto it = line.find(userId);
+      if (it != std::string::npos) {
+        return line.substr(0, it - 1);
+      }
+    }
+  }
+  return "";
+}
+
+// DONE: Read and return the uptime of a process
+// REMOVE: [[maybe_unused]] once you define the function
+long LinuxParser::UpTime(int pid) {
+  auto procFileName = PROC_FILE(pid, kStatFilename);
+  std::vector<string> data;
+  std::ifstream stream(procFileName);
+  if (stream.is_open()) {
+    int i = 0;
+    std::string token;
+    while (i <= 22 && ++i) {
+      stream >> token;
+    }
+    return ((stol(token) / TICKS_PER_SEC));
+  }
+  return 0;
+}

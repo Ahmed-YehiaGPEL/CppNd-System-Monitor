@@ -25,6 +25,8 @@ class System {
   std::vector<Process> processes_ = {};
   const std::string mKernel;
   const std::string mOperatingSystem;
+
+  void SampleProcesses();
 };
 
 #endif

@@ -11,23 +11,18 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-Process::Process():mPid(0){}
-Process::Process(int pid) : mPid(pid) {}
+Process::Process() : mPid(0) {}
+Process::Process(int pid) : mPid(pid) {CalculateUtlization();}
 
 int Process::Pid() { return mPid; }
 
-
 float Process::CpuUtilization() const { return mUtilization; }
-
 
 string Process::Command() { return LinuxParser::Command(mPid); }
 
-
 string Process::Ram() { return LinuxParser::Ram(mPid); }
 
-
 string Process::User() { return LinuxParser::User(mPid); }
-
 
 long int Process::UpTime() { return LinuxParser::UpTime(mPid); }
 
@@ -39,4 +34,10 @@ bool Process::operator>(const Process& a) const {
   return CpuUtilization() > a.CpuUtilization();
 }
 
-void Process::CalculateUtlization() { mUtilization = 0.0f; }
+void Process::CalculateUtlization() {
+  auto upTime = LinuxParser::UpTime();
+  auto processUpTime = UpTime();
+  auto activeTime = LinuxParser::ActiveJiffies(mPid);
+  auto seconds = upTime - (processUpTime / sysconf(_SC_CLK_TCK));
+  mUtilization =  100 * ((activeTime / sysconf(_SC_CLK_TCK)/seconds));
+}
