@@ -2,18 +2,11 @@
 #define PROCESSOR_H
 
 class Processor {
- private:
-  struct ProcessorState {
-    float Idle, IOWait, User, Nice, System, Irq, SoftIrq, Steal, Guest,
-        GuestNice;
-  };
-
  public:
-  float Utilization();  // TODO: See src/processor.cpp
-
-  // TODO: Declare any necessary private members
+  Processor();
+  float Utilization();  
  private:
-  ProcessorState previousProcessorState;
+  std::vector<float> previousProcessorState;
 };
 
 #endif
