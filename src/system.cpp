@@ -1,4 +1,7 @@
+#include "system.h"
+
 #include <unistd.h>
+
 #include <cstddef>
 #include <set>
 #include <string>
@@ -7,7 +10,6 @@
 #include "linux_parser.h"
 #include "process.h"
 #include "processor.h"
-#include "system.h"
 
 using std::set;
 using std::size_t;
@@ -50,7 +52,10 @@ void System::SampleProcesses() {
   vector<int> currentPids = LinuxParser::Pids();
   vector<int> oldPids;
   for (auto p : processes_) {
-    oldPids.push_back(p.Pid());
+    if (std::find(currentPids.begin(), currentPids.end(), p.Pid()) !=
+        currentPids.end()) {
+      oldPids.push_back(p.Pid());
+    }
   }
   for (auto p : currentPids) {
     if (std::find(oldPids.begin(), oldPids.end(), p) == oldPids.end()) {
