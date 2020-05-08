@@ -4,7 +4,8 @@
 class Processor {
  public:
   Processor();
-  float Utilization();  
+  float Utilization();
+
  private:
   std::vector<long> previousProcessorState;
 };

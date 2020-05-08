@@ -1,9 +1,9 @@
 #include <unistd.h>
 #include <cctype>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 #include "linux_parser.h"
 #include "process.h"
@@ -39,9 +39,10 @@ bool Process::operator>(Process& a) {
 }
 
 void Process::CalculateUtlization() {
-  long upTimeSeconds = LinuxParser::UpTime(); //Sys Uptime in Seconds
+  long upTimeSeconds = LinuxParser::UpTime();  // Sys Uptime in Seconds
   long processStartTimeSeconds = UpTime();
-  float activeTimeSeconds = (LinuxParser::ActiveJiffies(mPid) / sysconf(_SC_CLK_TCK));
+  float activeTimeSeconds =
+      (LinuxParser::ActiveJiffies(mPid) / sysconf(_SC_CLK_TCK));
   float totalProcessTimeSeconds = upTimeSeconds - processStartTimeSeconds;
   mUtilization = 100 * (activeTimeSeconds / totalProcessTimeSeconds);
 }

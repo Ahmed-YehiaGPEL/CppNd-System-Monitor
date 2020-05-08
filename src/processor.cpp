@@ -9,25 +9,25 @@ float Processor::Utilization() {
 
   // Idle
   long prevIdle = previousProcessorState[LinuxParser::kIdle_] +
-                   previousProcessorState[LinuxParser::kIOwait_];
+                  previousProcessorState[LinuxParser::kIOwait_];
   long idle = currentProcessorState[LinuxParser::kIdle_] +
-               currentProcessorState[LinuxParser::kIOwait_];
+              currentProcessorState[LinuxParser::kIOwait_];
   long idleDelta = idle - prevIdle;
   // NonIdle
 
   long prevNonIdle = previousProcessorState[LinuxParser::kUser_] +
-                      previousProcessorState[LinuxParser::kNice_] +
-                      previousProcessorState[LinuxParser::kSystem_] +
-                      previousProcessorState[LinuxParser::kIRQ_] +
-                      previousProcessorState[LinuxParser::kSoftIRQ_] +
-                      previousProcessorState[LinuxParser::kSteal_];
+                     previousProcessorState[LinuxParser::kNice_] +
+                     previousProcessorState[LinuxParser::kSystem_] +
+                     previousProcessorState[LinuxParser::kIRQ_] +
+                     previousProcessorState[LinuxParser::kSoftIRQ_] +
+                     previousProcessorState[LinuxParser::kSteal_];
 
   long nonIdle = currentProcessorState[LinuxParser::kUser_] +
-                  currentProcessorState[LinuxParser::kNice_] +
-                  currentProcessorState[LinuxParser::kSystem_] +
-                  currentProcessorState[LinuxParser::kIRQ_] +
-                  currentProcessorState[LinuxParser::kSoftIRQ_] +
-                  currentProcessorState[LinuxParser::kSteal_];
+                 currentProcessorState[LinuxParser::kNice_] +
+                 currentProcessorState[LinuxParser::kSystem_] +
+                 currentProcessorState[LinuxParser::kIRQ_] +
+                 currentProcessorState[LinuxParser::kSoftIRQ_] +
+                 currentProcessorState[LinuxParser::kSteal_];
   // Total
   long prevTotal = prevIdle + prevNonIdle;
   long total = idle + nonIdle;
