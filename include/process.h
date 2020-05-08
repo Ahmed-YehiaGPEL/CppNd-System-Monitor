@@ -13,12 +13,12 @@ class Process {
   int Pid();
   std::string User();
   std::string Command();
-  float CpuUtilization() const;
+  float CpuUtilization();
   std::string Ram();
   long int UpTime();
 
-  bool operator<(const Process& a) const;
-  bool operator>(const Process& a) const;
+  bool operator<(Process& a);
+  bool operator>(Process& a);
 
  private:
   int mPid;

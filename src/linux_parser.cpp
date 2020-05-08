@@ -305,7 +305,7 @@ long LinuxParser::UpTime(int pid) {
   if (stream.is_open()) {
     int i = 0;
     std::string token;
-    while (i <= 22 && ++i) {
+    while (i < 22 && ++i) {
       stream >> token;
     }
     return ((stol(token) / TICKS_PER_SEC));
