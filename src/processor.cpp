@@ -34,5 +34,5 @@ float Processor::Utilization() {
   long totalDelta = total - prevTotal;
 
   previousProcessorState = std::move(currentProcessorState);
-  return (totalDelta - idleDelta) / (1.0f * totalDelta);
+  return (totalDelta - idleDelta) / (static_cast<float>(totalDelta));
 }

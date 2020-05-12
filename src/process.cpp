@@ -44,5 +44,5 @@ void Process::CalculateUtlization() {
   float activeTimeSeconds =
       (LinuxParser::ActiveJiffies(mPid) / sysconf(_SC_CLK_TCK));
   float totalProcessTimeSeconds = upTimeSeconds - processStartTimeSeconds;
-  mUtilization = 100 * (activeTimeSeconds / totalProcessTimeSeconds);
+  mUtilization = (activeTimeSeconds / totalProcessTimeSeconds); //Feedback addressed, removed mul by 100
 }

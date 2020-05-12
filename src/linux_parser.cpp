@@ -26,7 +26,7 @@ string LinuxParser::OperatingSystem() {
       std::replace(line.begin(), line.end(), '"', ' ');
       std::istringstream linestream(line);
       while (linestream >> key >> value) {
-        if (key == "PRETTY_NAME") {
+        if (key == LinuxParser::Filters::PRETTY_NAME) {
           std::replace(value.begin(), value.end(), '_', ' ');
           return value;
         }
@@ -73,17 +73,19 @@ vector<int> LinuxParser::Pids() {
 float LinuxParser::MemoryUtilization() {
   float memUtil;
   std::ifstream memFile(kProcDirectory + kMeminfoFilename);
-  std::string k, v, line;
+   std::string line;
+    std::string k;
+    std::string v;
   float totalMemory = -1, freeMemory = -1, bufferMemory = -1;
   if (memFile.is_open()) {
     while (getline(memFile, line)) {
       std::stringstream stream(line);
       stream >> k >> v;
-      if (k == "MemTotal:") {
+      if (k == LinuxParser::Filters::MEM_TOTAL) {
         totalMemory = std::stof(v);
-      } else if (k == "MemFree:") {
+      } else if (k == LinuxParser::Filters::MEM_FREE) {
         freeMemory = std::stof(v);
-      } else if (k == "Buffers:") {
+      } else if (k == LinuxParser::Filters::BUFFERS) {
         bufferMemory = std::stof(v);
       }
       if (totalMemory != -1 && freeMemory != -1 && bufferMemory != -1) break;
@@ -172,7 +174,9 @@ vector<long> LinuxParser::CpuUtilization() {
   std::ifstream procFile(LinuxParser::kProcDirectory +
                          LinuxParser::kStatFilename);
   if (procFile.is_open()) {
-    std::string line, k, v;
+    std::string line;
+    std::string k;
+    std::string v;
     while (getline(procFile, line)) {
       std::stringstream cpuValues(line);
       cpuValues >> k;
@@ -197,11 +201,13 @@ vector<long> LinuxParser::CpuUtilization() {
 int LinuxParser::TotalProcesses() {
   std::ifstream memInfoFile(kProcDirectory + kStatFilename);
   if (memInfoFile.is_open()) {
-    std::string line, k, v;
+    std::string line;
+    std::string k;
+    std::string v;
     while (getline(memInfoFile, line)) {
       std::stringstream stream(line);
       stream >> k >> v;
-      if (k == "processes") {
+      if (k == LinuxParser::Filters::PROCESSES) {
         return std::stoi(v);
       }
     }
@@ -218,7 +224,7 @@ int LinuxParser::RunningProcesses() {
     while (getline(memInfoFile, line)) {
       std::stringstream stream(line);
       stream >> k >> v;
-      if (k == "procs_running") {
+      if (k == LinuxParser::Filters::PROCS_RUNNING) {
         return std::stoi(v);
       }
     }
@@ -245,12 +251,13 @@ string LinuxParser::Command(int pid) {
 string LinuxParser::Ram(int pid) {
   auto procFileName = PROC_FILE(pid, kStatusFilename);
   std::ifstream statFileStream(procFileName);
-  std::string line, k;
+  std::string line;
+  std::string k;
   if (statFileStream.is_open()) {
     while (getline(statFileStream, line)) {
       std::stringstream stream(line);
       stream >> k;
-      if (k == "VmSize:") {
+      if (k == LinuxParser::Filters::VM_DATA) { //Used VmData instead of VmSize to calculate actual physical memory!
         stream >> k;
         return (to_string(stol(k) / 1024));
       }
@@ -265,19 +272,20 @@ string LinuxParser::Ram(int pid) {
 string LinuxParser::Uid(int pid) {
   auto procFileName = PROC_FILE(pid, kStatusFilename);
   std::ifstream statFileStream(procFileName);
-  std::string line, k;
+  std::string line;
+  std::string k;
   if (statFileStream.is_open()) {
     while (getline(statFileStream, line)) {
       std::stringstream stream(line);
       stream >> k;
-      if (k == "Uid:") {
+      if (k == LinuxParser::Filters::UID) {
         stream >> k;
         return k;
       }
     }
   }
 
-  return " ";
+  return "";
 }
 
 // DONE: Read and return the user associated with a process
@@ -285,7 +293,8 @@ string LinuxParser::Uid(int pid) {
 string LinuxParser::User(int pid) {
   std::ifstream passwdFile(kPasswordPath);
   if (passwdFile.is_open()) {
-    std::string line, userId = "x:" + Uid(pid);
+    std::string line;
+    std::string userId = "x:" + Uid(pid);
     while (getline(passwdFile, line)) {
       auto it = line.find(userId);
       if (it != std::string::npos) {

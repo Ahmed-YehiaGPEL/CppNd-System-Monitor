@@ -54,12 +54,12 @@ void System::SampleProcesses() {
   for (auto p : processes_) {
     if (std::find(currentPids.begin(), currentPids.end(), p.Pid()) !=
         currentPids.end()) {
-      oldPids.push_back(p.Pid());
+      oldPids.emplace_back(p.Pid());
     }
   }
   for (auto p : currentPids) {
     if (std::find(oldPids.begin(), oldPids.end(), p) == oldPids.end()) {
-      processes_.push_back(Process(p));
+      processes_.emplace_back(Process(p));
     }
   }
   std::sort(processes_.begin(), processes_.end());
