@@ -73,9 +73,9 @@ vector<int> LinuxParser::Pids() {
 float LinuxParser::MemoryUtilization() {
   float memUtil;
   std::ifstream memFile(kProcDirectory + kMeminfoFilename);
-   std::string line;
-    std::string k;
-    std::string v;
+  std::string line;
+  std::string k;
+  std::string v;
   float totalMemory = -1, freeMemory = -1, bufferMemory = -1;
   if (memFile.is_open()) {
     while (getline(memFile, line)) {
@@ -257,7 +257,9 @@ string LinuxParser::Ram(int pid) {
     while (getline(statFileStream, line)) {
       std::stringstream stream(line);
       stream >> k;
-      if (k == LinuxParser::Filters::VM_DATA) { //Used VmData instead of VmSize to calculate actual physical memory!
+      if (k == LinuxParser::Filters::VM_DATA) {  // Used VmData instead of
+                                                 // VmSize to calculate actual
+                                                 // physical memory!
         stream >> k;
         return (to_string(stol(k) / 1024));
       }
